@@ -102,4 +102,3 @@ This project is licensed under the MIT License. See the LICENSE file for details
 This README provides an overview of the project, setup instructions, usage examples, and information on contributing and licensing.
 This README provides an overview of the project, setup instructions, usage examples, and information on contributing and licensing.
 ```
-# kaze-feature-descriptor-perceptual-image-hashing
