@@ -11,6 +11,10 @@ This repository contains the implementation of KAZE feature descriptor and perce
   - [Detect Shots](#detect-shots)
   - [Feature Extraction](#feature-extraction)
   - [Hamming Distance Calculation](#hamming-distance-calculation)
+- [Briefing of the Overall Task](#briefing-of-the-overall-task)
+  - [Preprocessing](#preprocessing)
+  - [Transition Detection](#transition-detection)
+- [Performance Comparison](#performance-comparison)
 - [Analysis](#analysis)
 - [Visualization](#visualization)
 - [Contributing](#contributing)
@@ -80,6 +84,22 @@ python kazeHash&Hamming.py
 
 This will generate KAZE hashes for each frame and calculate Hamming distances between consecutive frames.
 
+## Briefing of the Overall Task
+
+KAZE feature point descriptor is used to detect key points from the extracted video frames and similarity measure is computed. Hash value is generated from these extracted frames. Hash values of successive frames are compared to detect abrupt transitions. Normalized Hamming distance is calculated and compared for two successive hashes to detect abrupt transition.
+
+### Preprocessing
+
+Initially, input color frames are extracted from the video. Frames are resized and converted into standard normalized image by x×x bilinear interpolation. The purpose of resizing the input frames is to generate hash values of the same length for frames of different dimensions. Then RGB images are transformed into grayscale images to enable key points for the feature detection process. Hashes generated from individual gray images are classified to detect abrupt transition based on the Hamming distance between two successive images.
+
+### Transition Detection
+
+Hamming distances are compared with the value of the threshold to determine if two consecutive frames are perceptually similar or dissimilar. Two consecutive frames which are perceptually dissimilar denote abrupt transition.
+
+## Performance Comparison
+
+Few state-of-art techniques like Performance of SIFT (Scale Invariant Feature Transform), SVD (Singular Value Decomposition), LBP Histogram, Fuzzy based algorithms are compared with the proposed system. For an unbiased comparison between the performance of the algorithms, few of the detected abrupt transition frames of TRECVid 2001 dataset and TRECVid 2007 dataset are used.
+
 ## Analysis
 
 To analyze normalized features, use the "comparison.py" script. The NormalizedFeatureAnalyzer class provides methods to analyze and normalize feature distances.
@@ -99,6 +119,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ```
 
-This README provides an overview of the project, setup instructions, usage examples, and information on contributing and licensing.
 This README provides an overview of the project, setup instructions, usage examples, and information on contributing and licensing.
 ```
