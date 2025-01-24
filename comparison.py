@@ -17,21 +17,17 @@ class FeatureExtractor:
             multi-scale analysis, spatial keypoint metrics, advanced dimensionality reduction,
             and robust normalization.
             """
-        # Convert to grayscale if needed
         if len(frame.shape) == 3:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         kaze = cv2.KAZE_create()
 
-        # Multi-scale feature aggregation
         aggregated_features = []
         for scale in range(num_scales):
-            # Downsample the image for multi-scale analysis
             scaled_frame = cv2.resize(frame, (frame.shape[1] // (scale + 1), frame.shape[0] // (scale + 1)))
             keypoints, descriptors = kaze.detectAndCompute(scaled_frame, None)
 
             if descriptors is not None and len(descriptors) > 0:
-                # Step 1: Descriptor Statistics
                 mean_desc = np.mean(descriptors, axis=0)
                 std_desc = np.std(descriptors, axis=0)
                 min_desc = np.min(descriptors, axis=0)
@@ -39,18 +35,14 @@ class FeatureExtractor:
                 skew_desc = skew(descriptors, axis=0)
                 kurt_desc = kurtosis(descriptors, axis=0)
 
-                # Combine statistics
                 desc_features = np.concatenate([mean_desc, std_desc, min_desc, max_desc, skew_desc, kurt_desc])
                 aggregated_features.append(desc_features)
 
         if not aggregated_features:
-            # Return zero vector if no descriptors are found
             return np.zeros(hash_size)
 
-        # Step 2: Aggregate Across Scales
         combined_features = np.mean(aggregated_features, axis=0)
 
-        # Step 3: Keypoint Spatial Features
         if keypoints:
             keypoint_coords = np.array([[kp.pt[0], kp.pt[1], kp.size, kp.angle] for kp in keypoints])
             spatial_mean = np.mean(keypoint_coords, axis=0)
@@ -58,20 +50,16 @@ class FeatureExtractor:
             spatial_features = np.concatenate([spatial_mean, spatial_std])
             combined_features = np.concatenate([combined_features, spatial_features])
 
-        # Step 4: Dimensionality Reduction (PCA or Autoencoder)
         if len(combined_features) > hash_size:
             pca = PCA(n_components=hash_size)
             try:
                 reduced_features = pca.fit_transform(combined_features.reshape(1, -1)).flatten()
             except ValueError:
-                # PCA fallback if insufficient samples
                 reduced_features = combined_features[:hash_size]
         else:
-            # Truncate or pad to hash_size
             reduced_features = (np.pad(combined_features, (0, hash_size - len(combined_features)), mode='constant')
                                 if len(combined_features) < hash_size else combined_features[:hash_size])
 
-        # Step 5: Normalize Features
         scaler = MinMaxScaler()
         normalized_features = scaler.fit_transform(reduced_features.reshape(-1, 1)).flatten()
 
@@ -82,7 +70,6 @@ class FeatureExtractor:
         """
         SIFT feature extraction with normalization
         """
-        # Convert to grayscale if needed
         if len(frame.shape) == 3:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -92,10 +79,8 @@ class FeatureExtractor:
         if descriptors is None or len(descriptors) == 0:
             return np.zeros(hash_size)
 
-        # Aggregate and truncate/pad
         mean_descriptor = np.mean(descriptors, axis=0)
 
-        # Truncate or pad to hash_size
         if len(mean_descriptor) > hash_size:
             normalized_desc = mean_descriptor[:hash_size]
         else:
@@ -111,24 +96,18 @@ class FeatureExtractor:
         """
         SVD-based feature extraction with normalization
         """
-        # Convert to grayscale if needed
         if len(frame.shape) == 3:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        # Resize to a consistent size to ensure SVD works
         frame_resized = cv2.resize(frame, (64, 64))
 
-        # Perform SVD
         u, s, vh = np.linalg.svd(frame_resized.astype(float))
 
-        # Extract top singular values and first singular vector components
         top_values = s[:5]
         top_vector = u[:, 0][:5]
 
-        # Combine and normalize
         features = np.concatenate([top_values, top_vector])
 
-        # Truncate or pad to hash_size
         if len(features) > hash_size:
             normalized_features = features[:hash_size]
         else:
@@ -144,7 +123,6 @@ class FeatureExtractor:
         """
         Local Binary Pattern histogram with normalization
         """
-        # Convert to grayscale if needed
         if len(frame.shape) == 3:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -154,7 +132,6 @@ class FeatureExtractor:
         hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, n_points + 3), range=(0, n_points + 2))
         normalized_hist = hist.astype(float) / hist.sum()
 
-        # Truncate or pad to hash_size
         if len(normalized_hist) > hash_size:
             normalized_hist = normalized_hist[:hash_size]
         else:
@@ -397,16 +374,12 @@ class NormalizedFeatureAnalyzer:
                     print(f"    {key}: {value:.4f}")
 
 def main():
-    # Specify the folder containing frames
     frames_folder = 'frames-2'  # Update this path
 
-    # Create analyzer
     analyzer = NormalizedFeatureAnalyzer(frames_folder)
 
-    # Analyze normalized features
     feature_analysis = analyzer.analyze_normalized_features()
 
-    # Visualize results
     analyzer.visualize_normalized_results(feature_analysis)
     analyzer.visualize_normalized_results_curve(feature_analysis)
 

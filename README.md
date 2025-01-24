@@ -71,18 +71,36 @@ This will detect shot boundaries based on histogram differences and save represe
 
 ### Feature Extraction
 
-To extract features using different methods, use the "comparison.py" script. The FeatureExtractor
-class provides various feature extraction methods such as KAZE, SIFT, SVD, LBP Histogram, and Fuzzy Entropy.
+To extract features using different methods, use the "comparison.py" script. The `FeatureExtractor` class provides various feature extraction methods such as KAZE, SIFT, SVD, LBP Histogram, and Fuzzy Entropy.
 
 ### Hamming Distance Calculation
 
-To calculate Hamming distances between KAZE hashes of frames, use the "kazeHash&Hamming.py" script:
+To calculate Hamming distances between KAZE hashes of frames and detect shot boundaries, use the updated "kazeHash&Hamming.py" script:
 
 ```sh
 python kazeHash&Hamming.py
 ```
 
-This will generate KAZE hashes for each frame and calculate Hamming distances between consecutive frames.
+This script:
+
+1. **Basic Shot Boundary Detection**:
+
+   - Detects shot boundaries by calculating the **Structural Similarity Index (SSIM)** between consecutive frames.
+   - Determines the type of transition (**abrupt** or **gradual**) based on a similarity threshold (default: `0.3`).
+
+2. **Advanced Shot Boundary Detection**:
+
+   - Combines multiple similarity measures:
+     - **SSIM**: Measures structural similarity.
+     - **Histogram Difference**: Computes the chi-square distance between color histograms of frames.
+     - **Edge Difference**: Uses Canny edge detection to compute edge differences.
+   - Averages these metrics to detect transitions more robustly.
+
+3. **Output**:
+   - Prints details of detected shot boundaries, including:
+     - The type of transition (abrupt/gradual).
+     - The difference score.
+     - The filenames of consecutive frames involved.
 
 ## Briefing of the Overall Task
 
@@ -90,7 +108,7 @@ KAZE feature point descriptor is used to detect key points from the extracted vi
 
 ### Preprocessing
 
-Initially, input color frames are extracted from the video. Frames are resized and converted into standard normalized image by x×x bilinear interpolation. The purpose of resizing the input frames is to generate hash values of the same length for frames of different dimensions. Then RGB images are transformed into grayscale images to enable key points for the feature detection process. Hashes generated from individual gray images are classified to detect abrupt transition based on the Hamming distance between two successive images.
+Initially, input color frames are extracted from the video. Frames are resized and converted into standard normalized images by `x × x` bilinear interpolation. The purpose of resizing the input frames is to generate hash values of the same length for frames of different dimensions. Then RGB images are transformed into grayscale images to enable key points for the feature detection process. Hashes generated from individual gray images are classified to detect abrupt transitions based on the Hamming distance between two successive images.
 
 ### Transition Detection
 
@@ -98,16 +116,16 @@ Hamming distances are compared with the value of the threshold to determine if t
 
 ## Performance Comparison
 
-Few state-of-art techniques like Performance of SIFT (Scale Invariant Feature Transform), SVD (Singular Value Decomposition), LBP Histogram, Fuzzy based algorithms are compared with the proposed system. For an unbiased comparison between the performance of the algorithms, few of the detected abrupt transition frames of TRECVid 2001 dataset and TRECVid 2007 dataset are used.
+Few state-of-the-art techniques like **SIFT (Scale-Invariant Feature Transform)**, **SVD (Singular Value Decomposition)**, **LBP Histogram**, and **Fuzzy-based algorithms** are compared with the proposed system. For an unbiased comparison between the performance of the algorithms, a subset of detected abrupt transition frames from the TRECVid 2001 dataset and TRECVid 2007 dataset are used.
 
 ## Analysis
 
-To analyze normalized features, use the "comparison.py" script. The NormalizedFeatureAnalyzer class provides methods to analyze and normalize feature distances.
+To analyze normalized features, use the "comparison.py" script. The `NormalizedFeatureAnalyzer` class provides methods to analyze and normalize feature distances.
 
 ## Visualization
 
 To visualize the results of normalized feature analysis, use the "comparison.py" script. The
-visualize_normalized_results and visualize_normalized_results_curve methods provide comprehensive visualizations of the analysis.
+`visualize_normalized_results` and `visualize_normalized_results_curve` methods provide comprehensive visualizations of the analysis.
 
 ## Contributing
 
@@ -116,8 +134,3 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-```
-
-This README provides an overview of the project, setup instructions, usage examples, and information on contributing and licensing.
-```

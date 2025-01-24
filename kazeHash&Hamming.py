@@ -1,65 +1,111 @@
 import os
 import cv2
-import hashlib
+import numpy as np
+from skimage.metrics import structural_similarity as ssim
 
 
-def image_to_kaze_hash(image_path):
-    # Read the image
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        raise ValueError(f"Image at path {image_path} could not be loaded.")
+class ShotBoundaryDetector:
+    def __init__(self, frames_folder, threshold=0.3):
+        self.frames_folder = frames_folder
+        self.threshold = threshold
+        self.frame_paths = self._get_sorted_frame_paths()
 
-    # Initialize the KAZE feature detector
-    kaze = cv2.KAZE_create()
+    def _get_sorted_frame_paths(self):
+        return sorted([
+            os.path.join(self.frames_folder, f)
+            for f in os.listdir(self.frames_folder)
+            if f.lower().endswith(('.png', '.jpg', '.jpeg'))
+        ])
 
-    # Detect keypoints and descriptors
-    keypoints, descriptors = kaze.detectAndCompute(image, None)
-    if descriptors is None:
-        raise ValueError(f"No descriptors found in the image.")
+    def detect_shot_boundaries(self):
+        shot_boundaries = []
 
-    # Flatten the descriptor array
-    descriptor_flat = descriptors.flatten()
+        for i in range(len(self.frame_paths) - 1):
+            # Read consecutive frames
+            frame1 = cv2.imread(self.frame_paths[i], cv2.IMREAD_GRAYSCALE)
+            frame2 = cv2.imread(self.frame_paths[i + 1], cv2.IMREAD_GRAYSCALE)
 
-    # Convert the descriptor to a byte string
-    descriptor_bytes = descriptor_flat.tobytes()
+            # Resize frames to ensure consistent comparison
+            frame1 = cv2.resize(frame1, (256, 256))
+            frame2 = cv2.resize(frame2, (256, 256))
 
-    # Generate the hash using SHA-256
-    hash_object = hashlib.sha256(descriptor_bytes)
-    hash_hex = hash_object.hexdigest()
+            # Compute structural similarity index
+            similarity = ssim(frame1, frame2)
+            difference = 1 - similarity
 
-    return hash_hex
+            # Classify transition type
+            if difference > self.threshold:
+                transition_type = "Abrupt" if difference > 0.5 else "Gradual"
+                shot_boundaries.append({
+                    'frame1': os.path.basename(self.frame_paths[i]),
+                    'frame2': os.path.basename(self.frame_paths[i + 1]),
+                    'difference': difference,
+                    'type': transition_type
+                })
+
+        return shot_boundaries
+
+    def advanced_shot_boundary_detection(self):
+        # Advanced detection with multiple similarity measures
+        shot_boundaries = []
+
+        for i in range(len(self.frame_paths) - 1):
+            frame1 = cv2.imread(self.frame_paths[i])
+            frame2 = cv2.imread(self.frame_paths[i + 1])
+
+            # Multiple feature extraction techniques
+            ssim_score = self._compute_ssim(frame1, frame2)
+            histogram_diff = self._compute_histogram_difference(frame1, frame2)
+            edge_difference = self._compute_edge_difference(frame1, frame2)
+
+            # Combined difference metric
+            combined_diff = np.mean([ssim_score, histogram_diff, edge_difference])
+
+            if combined_diff > self.threshold:
+                transition_type = "Abrupt" if combined_diff > 0.5 else "Gradual"
+                shot_boundaries.append({
+                    'frame1': os.path.basename(self.frame_paths[i]),
+                    'frame2': os.path.basename(self.frame_paths[i + 1]),
+                    'difference': combined_diff,
+                    'type': transition_type
+                })
+
+        return shot_boundaries
+
+    def _compute_ssim(self, frame1, frame2):
+        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+        return ssim(gray1, gray2)
+
+    def _compute_histogram_difference(self, frame1, frame2):
+        hist1 = cv2.calcHist([frame1], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        hist2 = cv2.calcHist([frame2], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        return cv2.compareHist(hist1, hist2, cv2.HISTCMP_CHISQR)
+
+    def _compute_edge_difference(self, frame1, frame2):
+        edges1 = cv2.Canny(frame1, 100, 200)
+        edges2 = cv2.Canny(frame2, 100, 200)
+        return np.mean(np.abs(edges1.astype(int) - edges2.astype(int))) / 255.0
 
 
-def hamming_distance(hash1, hash2):
-    if len(hash1) != len(hash2):
-        raise ValueError("Hash lengths are not equal.")
+def main():
+    frames_folder = "frames-1"
+    detector = ShotBoundaryDetector(frames_folder)
 
-    distance = sum(c1 != c2 for c1, c2 in zip(hash1, hash2))
-    return distance
+    # Basic shot boundary detection
+    basic_boundaries = detector.detect_shot_boundaries()
+    print("Basic Shot Boundaries:")
+    for boundary in basic_boundaries:
+        print(
+            f"{boundary['type']} Transition: {boundary['frame1']} -> {boundary['frame2']} (Difference: {boundary['difference']:.4f})")
 
-
-def calculate_hamming_distances(frames_folder):
-    # Get a sorted list of image paths from the folder
-    image_paths = sorted(
-        [os.path.join(frames_folder, f) for f in os.listdir(frames_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
-    )
-
-    # Generate KAZE hashes for each image
-    hashes = [image_to_kaze_hash(image_path) for image_path in image_paths]
-
-    # Calculate Hamming distances between consecutive hashes
-    distances = []
-    for i in range(len(hashes) - 1):
-        distance = hamming_distance(hashes[i], hashes[i + 1])
-        distances.append((image_paths[i], image_paths[i + 1], distance))
-
-    return distances
+    # Advanced shot boundary detection
+    advanced_boundaries = detector.advanced_shot_boundary_detection()
+    print("\nAdvanced Shot Boundaries:")
+    for boundary in advanced_boundaries:
+        print(
+            f"{boundary['type']} Transition: {boundary['frame1']} -> {boundary['frame2']} (Difference: {boundary['difference']:.4f})")
 
 
-# Example Usage
-frames_folder = "path_to_frames_folder"  # Replace with your actual frames folder path
-hamming_distances = calculate_hamming_distances(frames_folder)
-
-# Print the results
-for frame1, frame2, distance in hamming_distances:
-    print(f"Hamming distance between {os.path.basename(frame1)} and {os.path.basename(frame2)}: {distance}")
+if __name__ == "__main__":
+    main()
