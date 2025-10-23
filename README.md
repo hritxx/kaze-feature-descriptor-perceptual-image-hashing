@@ -47,6 +47,37 @@ This project demonstrates the use of KAZE feature descriptors and perceptual ima
 
    After downloading, place the videos in the root directory of the project.
 
+   ## Microscopic / Biological Videos
+
+   As an extension of this research into medical and biological image analysis, we include links to two related Google Drive folders containing microscopic observation videos and their extracted frames. These datasets are useful for testing the robustness of the KAZE feature descriptor and perceptual hashing approach on microscopy and medically-relevant video data (different scales, noise characteristics, and motion patterns).
+
+   - Microscopy / biological videos (original video files):
+
+     https://drive.google.com/drive/folders/15lFETsBZx6CWNDH0v0zBKNBvg5aCp_AU?usp=sharing
+
+   - Extracted frames from the microscopy videos (already extracted frames):
+
+     https://drive.google.com/drive/folders/128lx1sNXqr2LgW37znA2AKW5jLcL70ha?usp=sharing
+
+   Usage notes:
+
+   - Recommended folder names locally:
+
+     - `microscopy_videos/` for the raw video files
+     - `microscopy_frames/` for the extracted frames
+
+   - Suggested workflow:
+
+     1. Download the videos into `microscopy_videos/` or place the provided frames into `microscopy_frames/`.
+     2. Use `Frames&Shots-Extractor.py` to (re-)extract frames if you only have videos and want control over frame rate or resizing.
+     3. Run `kazeHash&Hamming.py` and `comparison.py` against `microscopy_frames/` to evaluate feature descriptors and hashing on the dataset.
+
+   - Notes specific to microscopy data:
+     - Frames may have high frame-to-frame similarity; consider subsampling (e.g., every Nth frame) before hashing to reduce redundancy.
+     - Lighting and focus changes are common; tune thresholds for SSIM/hamming accordingly or apply simple preprocessing (CLAHE, denoising) before feature extraction.
+
+   If you'd like, I can add a small helper script to download these Drive folders (or to read from them if you provide a mounted path) and place contents into the recommended local folders.
+
 ## Usage
 
 ### Extract Frames
