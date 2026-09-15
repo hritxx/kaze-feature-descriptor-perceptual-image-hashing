@@ -1,6 +1,5 @@
 # KAZE Feature Descriptor & Perceptual Image Hashing
 
-[![DOI](https://img.shields.io/badge/DOI-10.XXXX%2FXXXXXX-blue)](https://doi.org/10.XXXX/XXXXXX)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This repository contains the implementation of KAZE feature descriptor and perceptual image hashing techniques. The codebase includes various feature extraction methods, shot detection, and analysis of normalized features.
@@ -12,8 +11,8 @@ This repository contains the implementation of KAZE feature descriptor and perce
 **Repository Links:**
 
 - **GitHub:** https://github.com/hritxx/kaze-feature-descriptor-perceptual-image-hashing
-- **Code Archive (Zenodo):** [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXXX-blue)](https://doi.org/10.5281/zenodo.XXXXXX) _(to be assigned)_
-- **Dataset (Zenodo):** [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXXX-blue)](https://doi.org/10.5281/zenodo.XXXXXX) _(to be assigned)_
+- **Code Archive (Zenodo):** DOI will be assigned upon acceptance
+- **Dataset (Zenodo):** DOI will be assigned upon acceptance
 
 ## Table of Contents
 
